@@ -1,0 +1,615 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { 
+    Gem, 
+    Eye, 
+    HeartHandshake, 
+    UsersRound, 
+    Briefcase, 
+    LineChart, 
+    ClipboardCheck, 
+    Megaphone, 
+    Smile,
+    Mail,
+    Phone,
+    MapPin,
+    ChevronRight,
+    Menu,
+    X,
+    Clock,
+    Zap,
+    Search,
+    Users,
+    BrainCircuit,
+    Award,
+    TrendingUp,
+    BookOpen,
+    Share2,
+    FileText,
+    Network
+} from 'lucide-react';
+
+// --- DADOS MOCK (Conteúdo da Sucesso RH) ---
+
+const servicosData = [
+  { id: 1, icon: <UsersRound size={40} />, title: 'Recrutamento & Seleção', description: 'Atração e seleção de talentos com agilidade e precisão para todos os níveis hierárquicos.' },
+  { id: 2, icon: <Briefcase size={40} />, title: 'Consultoria em RH', description: 'Diagnóstico e implementação de estratégias de RH alinhadas aos objetivos do seu negócio.' },
+  { id: 3, icon: <LineChart size={40} />, title: 'Programas de Desenvolvimento', description: 'Treinamentos e workshops para desenvolver competências e lideranças de alta performance.' },
+  { id: 4, icon: <ClipboardCheck size={40} />, title: 'Gestão de Pessoas', description: 'Soluções para avaliação de desempenho, clima organizacional e plano de cargos e salários.' },
+];
+
+const capsulasData = [
+    { icon: <Clock />, text: 'Seja Pontual: Demonstra respeito e comprometimento desde o início.' },
+    { icon: <Zap />, text: 'Mostre Proatividade: Não espere ordens, identifique problemas e proponha soluções.' },
+    { icon: <Search />, text: 'Pesquise a Empresa: Mostre interesse genuíno e faça perguntas inteligentes.' },
+    { icon: <Users />, text: 'Valorize o Trabalho em Equipe: Colaboração é a chave para grandes resultados.' },
+    { icon: <BrainCircuit />, text: 'Pense como o Dono: Tenha senso de responsabilidade e cuide dos recursos.' },
+    { icon: <Award />, text: 'Vá Além do Esperado: Surpreenda positivamente entregando mais valor.' },
+    { icon: <BookOpen />, text: 'Busque Conhecimento: Invista no seu desenvolvimento contínuo para se destacar.' },
+    { icon: <Share2 />, text: 'Compartilhe o que Sabe: Ensinar fortalece a equipe e seu próprio conhecimento.' },
+    { icon: <FileText />, text: 'Tenha um Currículo de Impacto: Destaque suas conquistas com números e resultados.' },
+    { icon: <Network />, text: 'Construa seu Networking: Conexões abrem portas para novas oportunidades.' },
+];
+
+const blogPosts = [
+  { id: 1, title: 'Dicas de Entrevista', summary: 'Prepare-se para se destacar no seu próximo processo seletivo com nossas dicas essenciais.', image: 'https://i.postimg.cc/G2RhF6T4/job-interview-candidate-selection-employment.jpg', content: "<p>Uma entrevista de emprego é sua chance de brilhar. Comece pesquisando a empresa: entenda sua cultura, produtos e valores. Prepare respostas para perguntas comuns como 'Fale sobre você' e 'Quais são seus pontos fortes e fracos?'. Use a técnica STAR (Situação, Tarefa, Ação, Resultado) para estruturar suas respostas sobre experiências passadas. Vista-se adequadamente para a cultura da empresa e, ao final, prepare perguntas inteligentes para o entrevistador. Lembre-se, a confiança é chave!</p>" },
+  { id: 2, title: 'Cultura Organizacional', summary: 'Entenda como uma cultura forte pode impulsionar o engajamento e a produtividade da equipe.', image: 'https://i.postimg.cc/J4j8qpmJ/missing-puzzle-piece.jpg', content: "<p>A cultura organizacional é o conjunto de valores, crenças e comportamentos que moldam o ambiente de uma empresa. Uma cultura forte e positiva atrai e retém talentos, melhora a colaboração e aumenta a satisfação dos funcionários. Empresas que investem em sua cultura criam um senso de pertencimento e propósito, o que se traduz em maior produtividade e inovação. Avalie se os valores da empresa estão alinhados com os seus antes de aceitar uma proposta.</p>" },
+  { id: 3, title: 'Liderança Estratégica', summary: 'As competências essenciais para líderes que desejam guiar suas equipes ao sucesso.', image: 'https://i.postimg.cc/gJwF6DNx/origami-boats-leadship-concept-3d-rendering.jpg', content: "<p>Um líder estratégico vai além da gestão diária. Ele possui uma visão clara do futuro, inspira sua equipe e toma decisões alinhadas aos objetivos de longo prazo da organização. As principais competências incluem comunicação eficaz, inteligência emocional, capacidade de delegar e, acima de tudo, a habilidade de motivar e desenvolver outras pessoas. Investir no desenvolvimento da liderança é crucial para a sustentabilidade de qualquer negócio.</p>" },
+  { id: 4, title: 'Avaliação de Desempenho', summary: 'Como transformar a avaliação de desempenho em uma ferramenta de crescimento contínuo.', image: 'https://i.postimg.cc/NjGnHD0Q/review-increase-rating-ranking-evaluation-classification-concept-businessman-draw-five-yellow-star-i.jpg', content: "<p>A avaliação de desempenho não deve ser vista como um evento anual de julgamento, mas sim como um processo contínuo de feedback e desenvolvimento. Um sistema eficaz foca em metas claras (OKRs ou KPIs), oferece feedbacks construtivos e regulares, e identifica oportunidades de treinamento e crescimento. Quando bem executada, a avaliação fortalece a relação entre líder e liderado e alinha as expectativas para o sucesso individual e coletivo.</p>" },
+  { id: 5, title: 'Motivação no Trabalho', summary: 'Estratégias para manter a si mesmo e sua equipe engajados e motivados.', image: 'https://i.postimg.cc/1znJGj11/business-people-motivating-themselves.jpg', content: "<p>A motivação é o combustível da produtividade. Ela vem de fatores intrísecos (propósito, autonomia, maestria) e extrínsecos (reconhecimento, remuneração). Para manter a equipe motivada, é fundamental reconhecer o bom trabalho, oferecer oportunidades de desenvolvimento, promover um ambiente de trabalho positivo e garantir que todos entendam como sua função contribui para os objetivos maiores da empresa. Pequenos gestos de apreço podem ter um grande impacto.</p>" },
+  { id: 6, title: 'Gestão de Carreira', summary: 'Assuma o controle do seu futuro profissional com um plano de carreira bem estruturado.', image: 'https://i.postimg.cc/d1FrhHqB/boss-going-upstairs.jpg', content: "<p>Gerir sua carreira significa ser o protagonista do seu desenvolvimento profissional. Comece com autoconhecimento: quais são seus interesses, habilidades e valores? Defina metas de curto, médio e longo prazo. Busque constantemente aprender novas competências (upskilling e reskilling). Construa um networking sólido e procure mentores. Não espere que a empresa dite seu caminho; seja proativo e crie suas próprias oportunidades de crescimento.</p>" },
+];
+
+
+// --- COMPONENTES ---
+
+const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navLinks = ['Home', 'Quem Somos', 'Serviços', 'Vagas', 'Canais', 'Blog', 'Contato'];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  const scrollToSection = (id) => {
+    const formattedId = id.toLowerCase().replace(' ', '-');
+    document.getElementById(formattedId)?.scrollIntoView({ behavior: 'smooth' });
+    setIsMenuOpen(false);
+  };
+
+  return (
+    <>
+      <motion.header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#1C4D96]/80 backdrop-blur-lg shadow-lg' : 'bg-[#1C4D96]'}`}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center h-20">
+          <a href="#home" onClick={(e) => {e.preventDefault(); scrollToSection('home')}}>
+            <img src="https://i.postimg.cc/h4Vf5H4z/logosucesso.png" alt="Logo Sucesso RH" className="h-5" />
+          </a>
+          <nav className="hidden lg:flex items-center space-x-8">
+            {navLinks.map(link => (
+              <button key={link} onClick={() => scrollToSection(link)} className="text-white hover:text-blue-200 transition-colors relative group">
+                {link}
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></span>
+              </button>
+            ))}
+          </nav>
+           <a href="https://sucessorh.github.io/recrutamentoeselecao/" target="_blank" rel="noopener noreferrer" className="hidden lg:block bg-white text-[#1C4D96] font-bold py-2 px-6 rounded-full hover:bg-blue-100 transition-all duration-300 transform hover:scale-105">
+              Candidatar-se às Vagas
+           </a>
+          <div className="lg:hidden flex items-center">
+             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="ml-4 text-white">
+                <Menu size={28}/>
+             </button>
+          </div>
+        </div>
+      </motion.header>
+      
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: "-50%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "-50%" }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="lg:hidden fixed top-0 left-0 w-full h-screen bg-[#1C4D96]/95 backdrop-blur-xl z-40 pt-20"
+          >
+             <nav className="flex flex-col items-center justify-center h-full space-y-8">
+                {navLinks.map(link => (
+                    <button key={link} onClick={() => scrollToSection(link)} className="text-white text-3xl font-semibold hover:text-blue-200 transition-colors">
+                        {link}
+                    </button>
+                ))}
+                 <a href="https://sucessorh.github.io/recrutamentoeselecao/" target="_blank" rel="noopener noreferrer" className="mt-4 bg-white text-[#1C4D96] font-bold py-3 px-8 rounded-full hover:bg-blue-100 transition-all duration-300">
+                    Candidatar-se
+                </a>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+const Hero = () => (
+  <section id="home" className="relative h-screen flex items-center justify-center text-center overflow-hidden bg-cover bg-center" style={{backgroundImage: "url('https://i.postimg.cc/sxjqFyDw/successful-happy-business-team.jpg')"}}>
+    <div className="absolute inset-0 bg-[#1C4D96] opacity-60"></div>
+    <div className="relative z-10 px-6 text-white">
+      <motion.h1 
+        className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight drop-shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        Conectando Empresas e Talentos para o Sucesso
+      </motion.h1>
+      <motion.p 
+        className="text-lg md:text-xl max-w-3xl mx-auto mb-10 drop-shadow-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+        Soluções estratégicas para o crescimento e inovação em Recursos Humanos.
+      </motion.p>
+      <motion.a 
+        href="https://sucessorh.github.io/recrutamentoeselecao/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block bg-white text-[#1C4D96] font-bold text-lg py-4 px-10 rounded-full border-2 border-transparent hover:bg-transparent hover:text-white hover:border-white transition-all duration-300 transform hover:scale-105"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, delay: 0.6, type: 'spring' }}
+        whileHover={{
+            boxShadow: "0 0 0 10px rgba(255, 255, 255, 0)",
+        }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Acessar Central de Vagas
+      </motion.a>
+    </div>
+  </section>
+);
+
+
+const QuemSomos = () => {
+    const cardVariants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: i => ({
+          opacity: 1,
+          y: 0,
+          transition: {
+            delay: i * 0.2,
+            duration: 0.5
+          }
+        })
+      };
+    
+      const aboutCards = [
+        { icon: <Gem size={24} />, title: "Missão", content: "Conectar talentos a oportunidades que promovam crescimento mútuo, oferecendo soluções de RH que geram valor para empresas e profissionais." },
+        { icon: <Eye size={24} />, title: "Visão", content: "Ser referência em consultoria de Recursos Humanos, reconhecida pela excelência, inovação e pelo impacto positivo na carreira das pessoas e no sucesso dos negócios." },
+        { icon: <HeartHandshake size={24} />, title: "Valores", content: "Ética, Comprometimento, Inovação, Respeito e Valorização das Pessoas." }
+      ];
+
+  return(
+    <section id="quem-somos" className="py-24 bg-gray-900 text-white overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="relative rounded-2xl overflow-hidden"
+            >
+                 <img src="https://i.postimg.cc/MGrNCgjS/authentic-small-youthful-marketing-agency.jpg" alt="Equipe Sucesso RH" className="w-full h-auto object-cover rounded-lg shadow-2xl" />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Sobre a <span className="text-blue-400">Sucesso RH</span></h2>
+                <p className="text-gray-300 text-lg leading-relaxed mb-8">Somos uma consultoria de RH dedicada a impulsionar o potencial humano e organizacional. Acreditamos que o sucesso de uma empresa está diretamente ligado ao talento e à satisfação de seus colaboradores.</p>
+                <div className="space-y-6">
+                    {aboutCards.map((card, i) => (
+                        <motion.div
+                        key={card.title}
+                        className="p-6 border border-white/10 rounded-xl bg-gray-500/10 backdrop-blur-lg flex items-start space-x-4"
+                        custom={i}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.5 }}
+                        variants={cardVariants}
+                        >
+                            <div className="flex-shrink-0 text-blue-400">{card.icon}</div>
+                            <div>
+                               <h3 className="text-xl font-bold text-white mb-2">{card.title}</h3>
+                               <p className="text-gray-400">{card.content}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Servicos = () => {
+    return (
+      <section 
+        id="servicos" 
+        className="py-24 bg-white relative"
+        style={{
+            backgroundImage: "url('https://i.postimg.cc/kG5V26g8/sucessorhmockupempresa.png')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm"></div>
+        <div className="container mx-auto px-6 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800">Nossos <span className="text-[#1C4D96]">Serviços</span></h2>
+            <p className="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">Oferecemos um portfólio completo de soluções para a gestão de pessoas e o desenvolvimento do seu negócio.</p>
+          </motion.div>
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {servicosData.map((servico, i) => (
+              <motion.div
+                key={servico.id}
+                className="relative rounded-2xl group cursor-pointer p-8 bg-white/80 backdrop-blur-md shadow-lg border border-gray-100 flex flex-col items-center text-center"
+                style={{ transformStyle: 'preserve-3d' }}
+                whileHover={{ y: -10, scale: 1.03, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: i * 0.1}}
+              >
+                  <div className="text-[#1C4D96] mb-4">{servico.icon}</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{servico.title}</h3>
+                  <p className="text-gray-600 flex-grow">{servico.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+const ConhecimentoCapsulas = () => {
+    const duplicatedCapsulas = [...capsulasData, ...capsulasData];
+
+    return (
+        <section className="py-24 bg-gray-900 overflow-hidden">
+            <div className="container mx-auto px-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.5 }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center mb-12"
+                >
+                    <h2 className="text-4xl md:text-5xl font-bold text-white">Cápsulas de <span className="text-blue-400">Conhecimento</span></h2>
+                    <p className="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Dicas rápidas para impulsionar sua carreira e conquistar a vaga desejada.</p>
+                </motion.div>
+            </div>
+            <div className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+                <ul className="flex items-center justify-center md:justify-start [&_li]:mx-4 [&_img]:max-w-none animate-infinite-scroll">
+                    {duplicatedCapsulas.map((item, index) => (
+                        <li key={index} className="flex-shrink-0 bg-gray-800/50 backdrop-blur-md rounded-xl p-6 w-80 border border-white/10">
+                            <div className="flex items-center space-x-4">
+                                <span className="text-blue-400">{item.icon}</span>
+                                <p className="text-white font-medium">{item.text}</p>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </section>
+    );
+};
+
+const CoracaoRH = () => (
+    <section 
+        className="py-24 text-white bg-cover bg-center relative" 
+        style={{backgroundImage: "url('https://i.postimg.cc/NGrV9NZN/close-up-smiling-person-conference-room.jpg')"}}
+    >
+        <div className="absolute inset-0 bg-[#1C4D96] opacity-80"></div>
+        <div className="container mx-auto px-6 relative z-10 text-center">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.8 }}
+            >
+                <HeartHandshake size={48} className="mx-auto mb-6 text-white"/>
+                <h2 className="text-4xl md:text-5xl font-extrabold mb-6 drop-shadow-lg">Descubra o Coração do RH</h2>
+                <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+                    Nossa equipe de Recursos Humanos é movida pela paixão de identificar talentos e pelo compromisso de contribuir para trajetórias profissionais de sucesso. Celebramos cada oportunidade de transformar positivamente a vida de um candidato ao dar as boas-vindas a um novo membro na nossa família corporativa.
+                </p>
+            </motion.div>
+        </div>
+    </section>
+);
+  
+const Vagas = () => (
+    <section id="vagas" className="py-24 text-white bg-cover bg-center bg-fixed relative" style={{backgroundImage: "url('https://i.postimg.cc/8cy64d0t/happy-businesswoman-wearing-suit-shaking-male-hand-focus-handshake.jpg')"}}>
+        <div className="absolute inset-0 bg-[#1C4D96] opacity-70"></div>
+        <div className="container mx-auto px-6 relative z-10 text-center">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.6 }}
+            >
+                <h2 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">Sua Carreira Decola Aqui.</h2>
+                <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 drop-shadow-md">Explore as oportunidades que temos para você e dê o próximo passo na sua jornada profissional. A vaga dos seus sonhos pode estar a um clique de distância.</p>
+                <a href="https://sucessorh.github.io/recrutamentoeselecao/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white text-[#1C4D96] whitespace-nowrap font-bold text-lg py-4 px-10 rounded-full border-2 border-transparent hover:bg-transparent hover:text-white hover:border-white transition-all duration-300 transform hover:scale-105">
+                    Ver Vagas e Candidatar-se Agora
+                </a>
+            </motion.div>
+        </div>
+    </section>
+);
+  
+const Canais = () => (
+    <section id="canais" className="py-24 bg-gray-900">
+        <div className="container mx-auto px-6">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.6 }}
+                className="text-center mb-16"
+            >
+                <h2 className="text-4xl md:text-5xl font-bold text-white">Nossos <span className="text-blue-400">Canais</span></h2>
+                <p className="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Sua opinião é fundamental. Utilize nossos canais para nos ajudar a melhorar sempre.</p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <motion.a href="https://sucessorh.github.io/ouvidoriasucessorh/" target="_blank" rel="noopener noreferrer"
+                    className="block p-8 bg-gray-800/50 backdrop-blur-md rounded-2xl border border-white/10 hover:border-blue-400 transition-colors"
+                    whileHover={{ y: -5 }}
+                >
+                    <div className="flex items-center space-x-5">
+                        <Megaphone size={32} className="text-blue-400"/>
+                        <div>
+                            <h3 className="text-2xl font-bold text-white">Ouvidoria</h3>
+                            <p className="text-gray-400 mt-1">Canal direto para sugestões, elogios e críticas.</p>
+                        </div>
+                    </div>
+                </motion.a>
+                <motion.a href="https://sucessorh.github.io/pesquisainternasucessor/" target="_blank" rel="noopener noreferrer"
+                    className="block p-8 bg-gray-800/50 backdrop-blur-md rounded-2xl border border-white/10 hover:border-blue-400 transition-colors"
+                    whileHover={{ y: -5 }}
+                >
+                    <div className="flex items-center space-x-5">
+                        <Smile size={32} className="text-blue-400"/>
+                        <div>
+                            <h3 className="text-2xl font-bold text-white">Pesquisa de Satisfação</h3>
+                            <p className="text-gray-400 mt-1">Conte-nos sobre sua experiência com nossos serviços.</p>
+                        </div>
+                    </div>
+                </motion.a>
+            </div>
+        </div>
+    </section>
+);
+
+const Blog = ({ setSelectedPost }) => {
+  return (
+    <section id="blog" className="py-24 bg-gray-800">
+      <div className="container mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white">Blog & <span className="text-blue-400">Insights</span></h2>
+          <p className="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Mantenha-se atualizado com as últimas tendências, dicas e artigos sobre carreira e gestão de RH.</p>
+        </motion.div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {blogPosts.map((post, i) => (
+            <motion.div
+              key={post.id}
+              className="bg-gray-900/50 rounded-xl overflow-hidden flex flex-col border border-white/10 hover:border-blue-500/50 transition-colors cursor-pointer"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: (i % 3) * 0.1 }}
+              onClick={() => setSelectedPost(post)}
+            >
+              <div className="overflow-hidden">
+                <motion.img 
+                    src={post.image} 
+                    alt={post.title} 
+                    className="w-full h-48 object-cover"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                 />
+              </div>
+              <div className="p-6 flex flex-col flex-grow">
+                <h3 className="text-xl font-bold text-white mb-3 flex-grow">{post.title}</h3>
+                <p className="text-gray-400 mb-6 text-sm">{post.summary}</p>
+                <div className="mt-auto self-start font-semibold text-blue-400 hover:text-blue-300 transition-colors flex items-center group">
+                  Ler mais <ChevronRight size={20} className="ml-1 transition-transform group-hover:translate-x-1" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const BlogPostModal = ({ post, setSelectedPost }) => {
+  if (!post) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setSelectedPost(null)}
+      >
+        <motion.div
+          className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 50, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button onClick={() => setSelectedPost(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white z-10">
+            <X size={24} />
+          </button>
+          <img src={post.image} alt={post.title} className="w-full h-64 object-cover rounded-t-2xl opacity-70" />
+          <div className="p-8">
+            <h2 className="text-4xl font-bold text-white mb-6">{post.title}</h2>
+            <div className="prose prose-invert prose-lg text-gray-300" dangerouslySetInnerHTML={{ __html: post.content }}>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+const Contato = () => (
+    <section id="contato" className="py-24 bg-gray-900 relative overflow-hidden">
+      <div className="container mx-auto px-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-white">Entre em <span className="text-blue-400">Contato</span></h2>
+            <p className="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Tem uma dúvida ou precisa de uma solução personalizada? Fale conosco!</p>
+          </motion.div>
+  
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+            >
+                <form action="mailto:contato@sucessorh.com.br" method="post" encType="text/plain" className="space-y-6">
+                    <input type="text" placeholder="Seu nome" name="Nome" required className="w-full p-4 bg-gray-800/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="email" placeholder="Seu e-mail" name="Email" required className="w-full p-4 bg-gray-800/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus-ring-blue-500"/>
+                    <textarea placeholder="Sua mensagem" rows="5" name="Mensagem" required className="w-full p-4 bg-gray-800/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <button type="submit" className="w-full py-4 px-8 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors transform hover:scale-105">
+                        Enviar Mensagem
+                    </button>
+                </form>
+            </motion.div>
+
+            <motion.div
+                className="space-y-6"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+            >
+                <div className="flex items-center text-lg space-x-4"><Mail className="text-blue-400"/><span className="text-gray-300">contato@sucessorh.com.br</span></div>
+                <div className="flex items-center text-lg space-x-4"><Phone className="text-blue-400"/><span className="text-gray-300">(92) 3232-3232</span></div>
+                <div className="flex items-center text-lg space-x-4"><MapPin className="text-blue-400"/><span className="text-gray-300">Av. Tefé, 4265 - Distrito Industrial I, Manaus - AM</span></div>
+                <div className="w-full h-80 rounded-lg shadow-lg overflow-hidden border-2 border-white/10 mt-4">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.829853925206!2d-59.97237868524234!3d-3.120677997701777!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x926c0800b70d599b%3A0x6b42b4d457b01b22!2sAv.%20Tef%C3%A9%2C%204265%20-%20Distrito%20Industrial%20I%2C%20Manaus%20-%20AM%2C%2069075-843!5e0!3m2!1spt-BR!2sbr!4v1663363573824!5m2!1spt-BR!2sbr" width="100%" height="100%" style={{ border:0, filter: 'invert(90%) grayscale(80%)' }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </motion.div>
+          </div>
+      </div>
+    </section>
+  );
+
+const Footer = () => (
+  <footer className="bg-[#1C4D96] text-white py-12">
+    <div className="container mx-auto px-6 text-center">
+      <div className="flex justify-center mb-6">
+        <img src="https://i.postimg.cc/h4Vf5H4z/logosucesso.png" alt="Logo Sucesso RH" className="h-6" />
+      </div>
+      <div className="flex justify-center space-x-6 mb-6">
+        {['Home', 'Quem Somos', 'Serviços', 'Vagas', 'Blog', 'Contato'].map(link => (
+          <a key={link} href={`#${link.toLowerCase().replace(' ', '-')}`} className="text-blue-200 hover:underline">{link}</a>
+        ))}
+      </div>
+      <p className="text-blue-200">&copy; {new Date().getFullYear()} Sucesso RH. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+);
+
+
+export default function App() {
+  const [selectedPost, setSelectedPost] = useState(null);
+
+  useEffect(() => {
+    // Adiciona classe ao body quando o modal está aberto para travar o scroll
+    if (selectedPost) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+  }, [selectedPost]);
+
+  // CSS para a animação do carrossel
+  const animationStyle = `
+    @keyframes infinite-scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+    .animate-infinite-scroll {
+        animation: infinite-scroll 40s linear infinite;
+    }
+  `;
+
+  return (
+    <div className="bg-gray-900 text-gray-200 font-sans antialiased">
+      <style>{animationStyle}</style>
+      <Header />
+      <main>
+        <Hero />
+        <QuemSomos />
+        <Servicos />
+        <ConhecimentoCapsulas />
+        <CoracaoRH />
+        <Canais />
+        <Blog setSelectedPost={setSelectedPost} />
+        <Vagas />
+        <Contato />
+      </main>
+      <Footer />
+
+      <AnimatePresence>
+        {selectedPost && (
+          <BlogPostModal post={selectedPost} setSelectedPost={setSelectedPost} />
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
